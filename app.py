@@ -6,12 +6,19 @@ st.set_page_config(page_title="Traffic Density Analyzer")
 
 st.title("🚦 Traffic Density Analyzer")
 
+
 # Load CSV
 df = pd.read_csv("TrafficTwoMonth.csv")
 
+# Fix Time column (VERY IMPORTANT)
+df["Time"] = pd.to_datetime(
+    df["Time"], format="%I:%M:%S %p")
+).dt.time
+
+
 # Clean columns
 df["Date"] = df["Date"].astype(int)
-df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
+
 
 # Location selection
 st.subheader("📍 Location Details")
@@ -40,6 +47,20 @@ day = st.number_input(
 selected_time = st.time_input("Select Time")
 
 if st.button("Analyze Traffic"):
+
+    filtered = df[
+        (df["Date"] == day) &
+        df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
+    ]
+
+    if filtered.empty:
+        st.warning("No data available for selected input")
+    else:
+        # Day of week
+        day_name = filtered.iloc[0]["Day of the week"]
+
+        st.markdown("### 📅 Date Details")
+        st.info(f"🗓️ Day : {day_name}")
     filtered = df[
         (df["Date"] == day) &
         (df["Time"] == selected_time)
