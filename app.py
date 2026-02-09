@@ -13,9 +13,11 @@ df = pd.read_csv("TrafficTwoMonth.csv")
 df["Date"] = df["Date"].astype(int)
 df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
 
-# Inputs
-location = st.text_input("📍 Enter Location / Road Name")
+# Location selection
+st.subheader("📍 Location Details")
 
+locations = ["MG Road", "Ring Road", "Market Area", "Highway"]
+location = st.selectbox("Select Location", locations)
 day = st.number_input(
     "Enter Day (Date number only, e.g. 10)",
     min_value=1,
