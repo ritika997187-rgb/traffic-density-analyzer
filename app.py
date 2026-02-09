@@ -11,7 +11,7 @@ df = pd.read_csv("TrafficTwoMonth.csv")
 
 # Convert date & time
 # CSV Date is only day number (10, 11, 12...)
-df["Date"] =  = pd.to_datetime(
+df["Date"] = pd.to_datetime(df["Date"], errors="coerce").dt.date
     df["Time"],
     format="%I:%M:%S %p",
     errors="coerce"
