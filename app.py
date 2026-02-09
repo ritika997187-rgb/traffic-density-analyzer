@@ -10,7 +10,9 @@ st.title("🚦 Traffic Density Analyzer")
 df = pd.read_csv("TrafficTwoMonth.csv")
 
 # Convert date & time
-df["Date"] = pd.to_datetime(df["Date"])
+# CSV Date is only day number (10, 11, 12...)
+df["Date"] = df["Date"].astype(int)
+df["Time"] = pd.to_datetime(df["Time"]).dt.time
 df["Time"] = pd.to_datetime(df["Time"]).dt.time
 
 # User inputs
@@ -19,8 +21,8 @@ selected_time = st.time_input("Select Time", value=time(9, 0))
 
 if st.button("Analyze Traffic"):
     filtered = df[
-        (df["Date"].dt.date == selected_date) &
-        (df["Time"] == selected_time)
+    (df["Date"] == selected_date.day) &
+    (df["Time"] == selected_time)
     ]
 
     if filtered.empty:
