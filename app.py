@@ -16,7 +16,19 @@ df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
 # Location selection
 st.subheader("📍 Location Details")
 
-locations = ["MG Road", "Ring Road", "Market Area", "Highway"]
+locations = [
+    "MG Road",
+    "Ring Road",
+    "Market Area",
+    "Highway",
+    "Bus Stand",
+    "Railway Station",
+    "School Zone",
+    "Hospital Area",
+    "Industrial Area",
+    "Residential Colony",
+    "City Center"
+]
 location = st.selectbox("Select Location", locations)
 day = st.number_input(
     "Enter Day (Date number only, e.g. 10)",
