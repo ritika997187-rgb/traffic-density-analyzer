@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-from datetime import time
+from datetime import datetime
 
-# Page config
 st.set_page_config(page_title="Traffic Density Analyzer")
 
 st.title("🚦 Traffic Density Analyzer")
@@ -10,49 +9,39 @@ st.title("🚦 Traffic Density Analyzer")
 # Load CSV
 df = pd.read_csv("TrafficTwoMonth.csv")
 
-# ---- DATA CLEANING ----
-
-# Date column (sirf day number hai, jaise 10, 11 etc.)
+# Clean columns
 df["Date"] = df["Date"].astype(int)
+df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
 
-# Time column (12:00:00 AM format)
-df["Time"] = pd.to_datetime(
-    df["Time"],
-    format="%I:%M:%S %p",
-    errors="coerce"
-).dt.time
+# Inputs
+location = st.text_input("📍 Enter Location / Road Name")
 
-# ---- USER INPUTS ----
-
-selected_day = st.number_input(
+day = st.number_input(
     "Enter Day (Date number only, e.g. 10)",
     min_value=1,
     max_value=31,
     step=1
 )
 
-selected_time = st.time_input(
-    "Select Time",
-    value=time(9, 0)
-)
-
-# ---- ANALYSIS ----
+selected_time = st.time_input("Select Time")
 
 if st.button("Analyze Traffic"):
     filtered = df[
-        (df["Date"] == selected_day) &
+        (df["Date"] == day) &
         (df["Time"] == selected_time)
     ]
 
     if filtered.empty:
-        st.warning("No data available for selected date & time")
+        st.warning("No data available for selected day & time")
     else:
-        avg_cars = int(filtered["CarCount"].mean())
-        st.success(f"Average Vehicles: {avg_cars}")
+        vehicles = int(filtered["CarCount"].values[0])
 
-        if avg_cars < 20:
+        st.info(f"📍 Location: {location if location else 'Not specified'}")
+        st.info(f"🚗 Vehicles count: {vehicles}")
+
+        if vehicles < 20:
             st.success("Low Traffic 🟢")
-        elif avg_cars < 50:
+        elif vehicles < 50:
             st.warning("Moderate Traffic 🟡")
         else:
             st.error("High Traffic 🔴")
