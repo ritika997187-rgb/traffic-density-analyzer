@@ -97,6 +97,29 @@ if st.button("Analyze Traffic"):
             reasons = [
                 "Normal traffic flow"
             ]
+            # -------- Traffic Advice --------
+st.markdown("### 🧭 Traffic Advice")
+
+if traffic.startswith("High"):
+    st.warning(
+        "🚫 Heavy traffic detected.\n\n"
+        "👉 Avoid this route during peak hours.\n"
+        "👉 Try alternate roads or wait 30–45 minutes."
+    )
+
+elif traffic.startswith("Moderate"):
+    st.info(
+        "⚠️ Moderate traffic.\n\n"
+        "👉 Expect slight delays.\n"
+        "👉 Drive carefully."
+    )
+
+else:
+    st.success(
+        "✅ Low traffic.\n\n"
+        "👉 Best time to travel.\n"
+        "👉 Smooth and safe route."
+            )
 
         st.markdown("### 🚦 Traffic Level")
         st.success(traffic)
