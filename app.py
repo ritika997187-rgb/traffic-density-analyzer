@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import streamlit.components.v1 as components
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
@@ -123,26 +122,5 @@ if st.button("🔍 Analyze Traffic"):
         else:
             st.success("Best time to travel. Smooth route.")
 
-        # ================= AUTO VOICE (WORKING) =================
-        voice_text = (
-            f"Traffic analysis result. "
-            f"Location is {location}. "
-            f"Day is {day_name}. "
-            f"Time is {selected_time}. "
-            f"Weather is {weather}. "
-            f"Traffic level is {traffic}."
-        )
-
-        components.html(
-            f"""
-            <script>
-                var msg = new SpeechSynthesisUtterance("{voice_text}");
-                msg.lang = "en-IN";
-                msg.rate = 0.95;
-                window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(msg);
-            </script>
-            """,
-            height=0
-        )
-        st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit Kumar Singh")
+# ================= FOOTER =================
+st.caption("🚦 st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
