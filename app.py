@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
@@ -9,7 +8,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# ================= DARK BACKGROUND =================
+# ================= BLACK BACKGROUND =================
 st.markdown(
     """
     <style>
@@ -24,6 +23,12 @@ st.markdown(
 
 # ================= TITLE =================
 st.title("🚦 Traffic Density Analyzer")
+
+st.markdown("""
+### 📌 Project Objective
+Analyze traffic density using **date, time, location and weather**
+to support better **traffic management and decision making**.
+""")
 
 # ================= LOAD DATA =================
 df = pd.read_csv("TrafficTwoMonth.csv")
@@ -51,15 +56,25 @@ locations = [
 
 location = st.selectbox("Select Location", locations)
 
+# ================= WEATHER =================
+st.subheader("🌦️ Weather Condition")
+
+weather = st.selectbox(
+    "Select Weather",
+    ["Sunny ☀️", "Rainy 🌧️", "Foggy 🌫️"]
+)
+
 # ================= DATE & TIME =================
+st.subheader("📅 Date & Time Input")
+
 day = st.number_input(
-    "📅 Enter Day (1–31)",
+    "Enter Day (1–31)",
     min_value=1,
     max_value=31,
     step=1
 )
 
-selected_time = st.time_input("⏰ Select Time")
+selected_time = st.time_input("Select Time")
 
 # ================= ANALYZE BUTTON =================
 if st.button("Analyze Traffic 🚗"):
@@ -70,7 +85,7 @@ if st.button("Analyze Traffic 🚗"):
     ]
 
     if filtered.empty:
-        st.warning("❌ No data available for selected day & time")
+        st.warning("❌ No data available for selected inputs")
 
     else:
         vehicles = int(filtered["CarCount"].values[0])
@@ -78,32 +93,34 @@ if st.button("Analyze Traffic 🚗"):
         hour = selected_time.hour
 
         # ================= OUTPUT =================
-        st.markdown("### 📊 Traffic Analysis")
+        st.markdown("### 📊 Traffic Analysis Result")
 
         st.info(f"📍 Location: {location}")
+        st.info(f"🌦️ Weather: {weather}")
         st.info(f"📅 Day: {day_name}")
         st.info(f"⏰ Time: {selected_time}")
         st.info(f"🚗 Vehicle Count: {vehicles}")
 
-        # ================= TRAFFIC LOGIC =================
-        if 8 <= hour <= 10 or 17 <= hour <= 20:
+        # ================= TRAFFIC LOGIC (WITH WEATHER) =================
+        if (8 <= hour <= 10 or 17 <= hour <= 20) or "Rainy" in weather or "Foggy" in weather:
             traffic = "High Traffic 🔴"
             reasons = [
-                "Office peak hours",
-                "High vehicle frequency"
+                "Peak hours or adverse weather",
+                "Reduced visibility and slow movement"
             ]
 
-        elif vehicles < 20:
+        elif vehicles < 20 and "Sunny" in weather:
             traffic = "Low Traffic 🟢"
             reasons = [
-                "Less vehicles",
-                "Non-peak hours"
+                "Low vehicle density",
+                "Clear weather conditions"
             ]
 
         else:
             traffic = "Moderate Traffic 🟡"
             reasons = [
-                "Normal traffic flow"
+                "Normal traffic flow",
+                "Average weather impact"
             ]
 
         # ================= TRAFFIC LEVEL =================
@@ -124,7 +141,9 @@ if st.button("Analyze Traffic 🚗"):
         # ================= SMART RECOMMENDATION =================
         st.markdown("### 🧠 Smart Recommendation")
 
-        if traffic.startswith("High"):
+        if "Rainy" in weather or "Foggy" in weather:
+            st.warning("Poor weather detected. Drive slowly and maintain safe distance.")
+        elif traffic.startswith("High"):
             st.warning("Avoid this route now. Try after peak hours.")
         elif traffic.startswith("Moderate"):
             st.info("Traffic is manageable. Drive carefully.")
@@ -135,6 +154,14 @@ if st.button("Analyze Traffic 🚗"):
         st.markdown("### 📈 Traffic Trend (Same Day)")
 
         day_data = df[df["Date"] == day].sort_values("Time")
-        st.line_chart(
-            day_data.set_index("Time")["CarCount"]
-)
+
+        if not day_data.empty:
+            st.line_chart(
+                day_data.set_index("Time")["CarCount"]
+            )
+        else:
+            st.warning("Not enough data to display graph")
+
+# ================= FOOTER =================
+st.markdown("---")
+st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
