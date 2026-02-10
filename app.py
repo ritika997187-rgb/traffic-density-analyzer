@@ -1,5 +1,5 @@
 from gtts import gTTS
-import os
+import uuid
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -161,4 +161,22 @@ with open("traffic_audio.mp3", "rb") as audio_file:
         st.markdown("### 📈 Traffic Trend (Same Day)")
         day_data = df[df["Date"] == day].sort_values("Time")
         st.line_chart(day_data.set_index("Time")["CarCount"])
-        st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
+        st.markdown("### 🔊 Voice Summary")
+
+if st.button("🔊 Play Voice Summary"):
+    voice_text = f"""
+    Traffic analysis result.
+    Location is {location}.
+    Day is {day_name}.
+    Time is {selected_time}.
+    Weather is {weather}.
+    Traffic level is {traffic}.
+    """
+
+    file_name = f"traffic_{uuid.uuid4()}.mp3"
+    tts = gTTS(text=voice_text, lang="en")
+    tts.save(file_name)
+
+    audio_file = open(file_name, "rb")
+    st.audio(audio_file.read(), format="audio/mp3")
+    st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
