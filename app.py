@@ -1,3 +1,5 @@
+from gtts import gTTS
+import os
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -135,6 +137,25 @@ if st.button("🔍 Analyze Traffic"):
             st.info("Traffic is manageable. Drive carefully.")
         else:
             st.success("Best time to travel. Smooth route.")
+            # ================= VOICE OUTPUT =================
+from gtts import gTTS
+
+st.markdown("### 🔊 Voice Summary")
+
+voice_text = f"""
+Traffic analysis result.
+Location is {location}.
+Day is {day_name}.
+Time is {selected_time}.
+Weather is {weather}.
+Traffic level is {traffic}.
+"""
+
+tts = gTTS(text=voice_text, lang="en")
+tts.save("traffic_audio.mp3")
+
+with open("traffic_audio.mp3", "rb") as audio_file:
+    st.audio(audio_file.read(), format="audio/mp3")
 
         # ================= GRAPH =================
         st.markdown("### 📈 Traffic Trend (Same Day)")
