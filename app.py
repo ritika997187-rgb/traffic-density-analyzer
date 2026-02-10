@@ -147,6 +147,21 @@ else:
 
         # ---------------- SIMPLE GRAPH ----------------
         st.markdown("### 📈 Traffic Trend (Same Day)")
+        # ---------------- SIMPLE GRAPH ----------------
+st.markdown("### 📈 Traffic Trend (Same Day)")
+
+day_data = df[df["Date"] == day].copy()
+
+if not day_data.empty:
+    day_data["Time_str"] = day_data["Time"].astype(str)
+
+    st.line_chart(
+        day_data
+        .sort_values("Time_str")
+        .set_index("Time_str")["CarCount"]
+    )
+else:
+    st.warning("No data available to show graph")
 
         day_data = df[df["Date"] == day].sort_values("Time")
         st.line_chart(day_data.set_index("Time")["CarCount"])
