@@ -4,7 +4,17 @@ from datetime import datetime
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Traffic Density Analyzer", layout="centered")
-
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #000000;
+        color: white;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 st.title("🚦 Traffic Density Analyzer")
 
 # ---------------- LOAD DATA ----------------
