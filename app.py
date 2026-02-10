@@ -8,7 +8,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# ================= DARK THEME =================
+# ================= DARK BACKGROUND =================
 st.markdown(
     """
     <style>
@@ -21,62 +21,85 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ================= TITLE =================
-st.markdown("## 🚦 Traffic Density Analyzer")
+st.title("🚦 Traffic Density Analyzer")
 
 # ================= LOAD DATA =================
 df = pd.read_csv("TrafficTwoMonth.csv")
 
-df["Date"] = pd.to_datetime(df["Date"])
-df["Time"] = pd.to_datetime(df["Time"]).dt.time
+# ================= CLEAN DATA =================
+df["Date"] = df["Date"].astype(int)
+df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
 
-# ================= INPUTS =================
-st.markdown("### 📍 Location Details")
+# ================= INPUT SECTION =================
+st.subheader("📍 Location Details")
 
-location = st.selectbox(
-    "Select Location",
-    df["Location"].unique()
-)
+locations = [
+    "Main Road",
+    "Ring Road",
+    "Market Area",
+    "Highway",
+    "Bus Stand",
+    "Railway Station",
+    "School Zone",
+    "Hospital Area",
+    "Residential Colony",
+    "City Center"
+]
+
+location = st.selectbox("Select Location", locations)
 
 day = st.number_input(
     "Enter Day (Date number)",
     min_value=1,
     max_value=31,
-    value=1
+    step=1
 )
 
-selected_time = st.time_input(
-    "Select Time",
-    datetime.now().time()
-)
+selected_time = st.time_input("Select Time")
 
 weather = st.selectbox(
     "Select Weather",
-    ["Clear", "Rainy", "Foggy"]
+    ["Clear", "Rainy", "Foggy", "Stormy"]
 )
 
-# ================= BUTTON =================
+# ================= ANALYZE BUTTON =================
 if st.button("🔍 Analyze Traffic"):
 
     filtered = df[
-        (df["Location"] == location) &
-        (df["Date"].dt.day == day) &
+        (df["Date"] == day) &
         (df["Time"] == selected_time)
     ]
 
     if filtered.empty:
-        st.warning("No data available for selected inputs.")
+        st.warning("No data available for selected inputs")
     else:
-        vehicles = int(filtered.iloc[0]["CarCount"])
-        day_name = filtered.iloc[0]["Day of the Week"]
+        vehicles = int(filtered["CarCount"].values[0])
+        day_name = filtered.iloc[0]["Day of the week"]
         hour = selected_time.hour
 
+        # ================= WEATHER EFFECT =================
+        if weather == "Rainy":
+            vehicles += 10
+        elif weather == "Foggy":
+            vehicles += 5
+        elif weather == "Stormy":
+            vehicles += 15
+
+        # ================= OUTPUT =================
+        st.markdown("### 📊 Traffic Analysis")
+
+        st.info(f"📍 Location: {location}")
+        st.info(f"📅 Day: {day_name}")
+        st.info(f"⏰ Time: {selected_time}")
+        st.info(f"🚗 Vehicle Count (Adjusted): {vehicles}")
+        st.info(f"🌦️ Weather: {weather}")
+
         # ================= TRAFFIC LOGIC =================
-        if (8 <= hour <= 10) or (17 <= hour <= 20) or weather in ["Rainy", "Foggy"]:
+        if 8 <= hour <= 10 or 17 <= hour <= 20:
             traffic = "High Traffic 🔴"
             reasons = [
-                "Peak hours or bad weather",
-                "Slow vehicle movement"
+                "Office peak hours",
+                "High vehicle movement"
             ]
         elif vehicles < 20:
             traffic = "Low Traffic 🟢"
@@ -87,17 +110,8 @@ if st.button("🔍 Analyze Traffic"):
         else:
             traffic = "Moderate Traffic 🟡"
             reasons = [
-                "Normal flow",
-                "Manageable congestion"
+                "Normal traffic flow"
             ]
-
-        # ================= OUTPUT =================
-        st.markdown("### 📊 Traffic Analysis")
-        st.info(f"📍 Location: {location}")
-        st.info(f"📅 Day: {day_name}")
-        st.info(f"⏰ Time: {selected_time}")
-        st.info(f"🌦️ Weather: {weather}")
-        st.info(f"🚗 Vehicle Count: {vehicles}")
 
         st.markdown("### 🚦 Traffic Level")
         st.success(traffic)
@@ -122,5 +136,8 @@ if st.button("🔍 Analyze Traffic"):
         else:
             st.success("Best time to travel. Smooth route.")
 
-# ================= FOOTER =================
-st.caption("🚦 st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
+        # ================= GRAPH =================
+        st.markdown("### 📈 Traffic Trend (Same Day)")
+        day_data = df[df["Date"] == day].sort_values("Time")
+        st.line_chart(day_data.set_index("Time")["CarCount"])
+        st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
