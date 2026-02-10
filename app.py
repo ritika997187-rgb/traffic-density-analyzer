@@ -140,6 +140,25 @@ if st.button("Analyze Traffic 🚗"):
 
         # ================= SMART RECOMMENDATION =================
         st.markdown("### 🧠 Smart Recommendation")
+        # ================= VOICE OUTPUT =================
+st.markdown("### 🔊 Voice Traffic Alert")
+
+voice_text = f"""
+Traffic Analysis Result.
+Location: {location}.
+Weather: {weather}.
+Traffic level is {traffic}.
+"""
+
+st.components.v1.html(
+    f"""
+    <script>
+    var msg = new SpeechSynthesisUtterance("{voice_text}");
+    window.speechSynthesis.speak(msg);
+    </script>
+    """,
+    height=0
+)
 
         if "Rainy" in weather or "Foggy" in weather:
             st.warning("Poor weather detected. Drive slowly and maintain safe distance.")
