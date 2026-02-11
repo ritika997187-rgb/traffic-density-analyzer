@@ -5,55 +5,50 @@ import streamlit.components.v1 as components
 import time
 
 # ================= PAGE CONFIG =================
-st.set_page_config(page_title="Traffic Density Analyzer", page_icon="🚦")
+st.set_page_config(
+    page_title="AI Traffic Density Analyzer",
+    layout="centered"
+)
 
 # ================= STYLISH DARK UI =================
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(135deg, #000000, #1a1a1a);
+    background: linear-gradient(135deg, #000000, #0f2027);
     color: white;
 }
 h1, h2, h3 {
     text-align: center;
-    color: #00ffcc;
 }
 div.stButton > button {
-    background: linear-gradient(90deg, #00ffcc, #00b3ff);
-    color: black;
+    background-color: #ff4b4b;
+    color: white;
     font-weight: bold;
-    border-radius: 12px;
-    height: 3em;
-    width: 100%;
+    border-radius: 10px;
+    padding: 0.5em 1em;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🚦 Smart Traffic Density Analyzer")
+st.markdown("# 🚦 AI Traffic Density Analyzer")
 
 # ================= LOAD DATA =================
 df = pd.read_csv("TrafficTwoMonth.csv")
 df["Date"] = pd.to_datetime(df["Date"])
 df["Time"] = pd.to_datetime(df["Time"]).dt.time
 
-# If no latitude/longitude in dataset, create demo ones
-if "Latitude" not in df.columns:
-    df["Latitude"] = 28.6139   # Delhi demo
-    df["Longitude"] = 77.2090
-
-# ================= INPUT =================
-st.markdown("## 📍 Enter Traffic Details")
+# ================= USER INPUT =================
+st.markdown("## 📍 Location Details")
 
 location = st.selectbox("Select Location", df["Location"].unique())
-day = st.number_input("Enter Day", 1, 31, 1)
+day = st.number_input("Enter Day (Date number)", 1, 31, 1)
 selected_time = st.time_input("Select Time", datetime.now().time())
 weather = st.selectbox("Select Weather", ["Clear", "Rainy", "Foggy"])
 
-# ================= ANALYZE =================
-if st.button("🚀 Analyze Traffic"):
+# ================= ANALYZE BUTTON =================
+if st.button("🔍 Analyze Traffic"):
 
-    # Animated Loading
-    with st.spinner("🔄 Analyzing traffic data..."):
+    with st.spinner("Analyzing traffic data... 🚀"):
         time.sleep(2)
 
     filtered = df[
@@ -63,81 +58,88 @@ if st.button("🚀 Analyze Traffic"):
     ]
 
     if filtered.empty:
-        st.warning("No data available.")
+        st.warning("No data available for selected inputs.")
     else:
         vehicles = int(filtered.iloc[0]["CarCount"])
         day_name = filtered.iloc[0]["Day of the Week"]
-        lat = filtered.iloc[0]["Latitude"]
-        lon = filtered.iloc[0]["Longitude"]
         hour = selected_time.hour
 
+        # ================= TRAFFIC LOGIC =================
         if (8 <= hour <= 10) or (17 <= hour <= 20) or weather in ["Rainy", "Foggy"]:
             traffic = "High Traffic 🔴"
+            traffic_hindi = "भारी ट्रैफिक"
         elif vehicles < 20:
             traffic = "Low Traffic 🟢"
+            traffic_hindi = "कम ट्रैफिक"
         else:
             traffic = "Moderate Traffic 🟡"
+            traffic_hindi = "मध्यम ट्रैफिक"
 
-        # ================= RESULT =================
-        st.success(f"""
-📍 Location: {location}  
-📅 Day: {day_name}  
-⏰ Time: {selected_time}  
-🌦️ Weather: {weather}  
-🚗 Vehicles: {vehicles}  
-🚦 Traffic: {traffic}
-""")
+        # ================= OUTPUT =================
+        st.markdown("## 📊 Traffic Analysis Result")
+        st.success(f"📍 Location: {location}")
+        st.info(f"📅 Day: {day_name}")
+        st.info(f"⏰ Time: {selected_time}")
+        st.info(f"🌦️ Weather: {weather}")
+        st.info(f"🚗 Vehicle Count: {vehicles}")
+        st.markdown(f"### 🚦 {traffic}")
 
-        # ================= GOOGLE MAP VIEW =================
-        st.markdown("## 🗺 Live Location Map")
-        map_df = pd.DataFrame({
-            "lat": [lat],
-            "lon": [lon]
+        # ================= GOOGLE MAP STYLE VIEW =================
+        st.markdown("## 🗺️ Location Map View")
+        map_data = pd.DataFrame({
+            "lat": [28.6139],
+            "lon": [77.2090]
         })
-        st.map(map_df)
+        st.map(map_data)
 
-        # ================= AUTO VOICE ENGLISH + HINDI =================
-        english_voice = (
-            f"Traffic analysis result. "
-            f"Location is {location}. "
-            f"Day is {day_name}. "
-            f"Time is {selected_time}. "
-            f"Weather is {weather}. "
-            f"Traffic level is {traffic}."
-        )
+        # ================= AUTO VOICE (ENGLISH + HINDI) =================
+        english_voice = f"""
+        Traffic analysis result.
+        Location is {location}.
+        Today is {day_name}.
+        Time is {selected_time}.
+        Weather is {weather}.
+        Traffic level is {traffic}.
+        """
 
-        hindi_voice = (
-            f"ट्रैफिक विश्लेषण परिणाम। "
-            f"स्थान है {location}. "
-            f"दिन है {day_name}. "
-            f"समय है {selected_time}. "
-            f"मौसम है {weather}. "
-            f"ट्रैफिक स्तर है {traffic}."
-        )
+        hindi_voice = f"""
+        ट्रैफिक विश्लेषण परिणाम।
+        स्थान है {location}.
+        आज है {day_name}.
+        समय है {selected_time}.
+        मौसम है {weather}.
+        ट्रैफिक स्तर है {traffic_hindi}.
+        """
 
-        components.html(
-            f"""
-            <script>
-                function speakText(text, lang) {{
-                    var msg = new SpeechSynthesisUtterance(text);
-                    msg.lang = lang;
-                    msg.rate = 0.9;
-                    msg.pitch = 1.1;
-                    window.speechSynthesis.speak(msg);
-                }}
+        components.html(f"""
+        <script>
+        function speakText(text) {{
+            var msg = new SpeechSynthesisUtterance(text);
+            msg.lang = "en-IN";
+            msg.rate = 0.9;
+            msg.pitch = 1.1;
+            msg.volume = 1;
+            window.speechSynthesis.speak(msg);
+        }}
 
-                window.speechSynthesis.cancel();
+        function speakHindi(text) {{
+            var msg = new SpeechSynthesisUtterance(text);
+            msg.lang = "hi-IN";
+            msg.rate = 0.9;
+            msg.pitch = 1.1;
+            msg.volume = 1;
+            window.speechSynthesis.speak(msg);
+        }}
 
-                speakText("{english_voice}", "en-IN");
+        window.speechSynthesis.cancel();
+        speakText(`{english_voice}`);
 
-                setTimeout(function() {{
-                    speakText("{hindi_voice}", "hi-IN");
-                }}, 5000);
-            </script>
-            """,
-            height=0
-        )
+        setTimeout(function() {{
+            speakHindi(`{hindi_voice}`);
+        }}, 6000);
+
+        </script>
+        """, height=0)
 
 st.markdown("---")
-st.caption("🚦 AI Traffic Density Analyzer | Smart City Project")
-st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
+st.caption("🚦 AI Traffic Density Analyzer | Smart City Project | By Mohit Kumar Singh")
