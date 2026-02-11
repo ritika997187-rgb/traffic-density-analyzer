@@ -26,27 +26,21 @@ st.title("🚦 Traffic Density Analyzer")
 # ================= LOAD DATA =================
 df = pd.read_csv("TrafficTwoMonth.csv")
 
-# ================= CLEAN DATA =================
+# ================= CLEAN COLUMN NAMES =================
+df.columns = df.columns.str.strip()
+
+# ================= DATA FORMAT FIX =================
 df["Date"] = df["Date"].astype(int)
-df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
+df["Time"] = pd.to_datetime(df["Time"]).dt.time
 
 # ================= INPUT SECTION =================
 st.subheader("📍 Location Details")
 
-locations = [
-    "Main Road",
-    "Ring Road",
-    "Market Area",
-    "Highway",
-    "Bus Stand",
-    "Railway Station",
-    "School Zone",
-    "Hospital Area",
-    "Residential Colony",
-    "City Center"
-]
-
-location = st.selectbox("Select Location", locations)
+# Auto fetch locations from CSV (NO manual list)
+location = st.selectbox(
+    "Select Location",
+    df["Location"].unique()
+)
 
 day = st.number_input(
     "Enter Day (Date number)",
@@ -66,6 +60,7 @@ weather = st.selectbox(
 if st.button("🔍 Analyze Traffic"):
 
     filtered = df[
+        (df["Location"] == location) &
         (df["Date"] == day) &
         (df["Time"] == selected_time)
     ]
@@ -73,8 +68,8 @@ if st.button("🔍 Analyze Traffic"):
     if filtered.empty:
         st.warning("No data available for selected inputs")
     else:
-        vehicles = int(filtered["CarCount"].values[0])
-        day_name = filtered.iloc[0]["Day of the week"]
+        vehicles = int(filtered.iloc[0]["CarCount"])
+        day_name = filtered.iloc[0]["Day of the Week"]
         hour = selected_time.hour
 
         # ================= WEATHER EFFECT =================
@@ -140,3 +135,7 @@ if st.button("🔍 Analyze Traffic"):
         st.markdown("### 📈 Traffic Trend (Same Day)")
         day_data = df[df["Date"] == day].sort_values("Time")
         st.line_chart(day_data.set_index("Time")["CarCount"])
+
+# ================= FOOTER =================
+st.markdown("---")
+st.caption("🚦 AI Traffic Density Analyzer | Smart City Mini Project | By Mohit Kumar Singh")
