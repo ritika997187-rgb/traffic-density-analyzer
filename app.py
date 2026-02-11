@@ -1,143 +1,143 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import streamlit.components.v1 as components
+import time
 
 # ================= PAGE CONFIG =================
-st.set_page_config(
-    page_title="Traffic Density Analyzer",
-    layout="centered"
-)
+st.set_page_config(page_title="Traffic Density Analyzer", page_icon="🚦")
 
-# ================= DARK BACKGROUND =================
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #000000;
-        color: white;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# ================= STYLISH DARK UI =================
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(135deg, #000000, #1a1a1a);
+    color: white;
+}
+h1, h2, h3 {
+    text-align: center;
+    color: #00ffcc;
+}
+div.stButton > button {
+    background: linear-gradient(90deg, #00ffcc, #00b3ff);
+    color: black;
+    font-weight: bold;
+    border-radius: 12px;
+    height: 3em;
+    width: 100%;
+}
+</style>
+""", unsafe_allow_html=True)
 
-st.title("🚦 Traffic Density Analyzer")
+st.title("🚦 Smart Traffic Density Analyzer")
 
 # ================= LOAD DATA =================
 df = pd.read_csv("TrafficTwoMonth.csv")
+df["Date"] = pd.to_datetime(df["Date"])
+df["Time"] = pd.to_datetime(df["Time"]).dt.time
 
-# ================= CLEAN DATA =================
-df["Date"] = df["Date"].astype(int)
-df["Time"] = pd.to_datetime(df["Time"], format="%I:%M:%S %p").dt.time
+# If no latitude/longitude in dataset, create demo ones
+if "Latitude" not in df.columns:
+    df["Latitude"] = 28.6139   # Delhi demo
+    df["Longitude"] = 77.2090
 
-# ================= INPUT SECTION =================
-st.subheader("📍 Location Details")
+# ================= INPUT =================
+st.markdown("## 📍 Enter Traffic Details")
 
-locations = [
-    "Main Road",
-    "Ring Road",
-    "Market Area",
-    "Highway",
-    "Bus Stand",
-    "Railway Station",
-    "School Zone",
-    "Hospital Area",
-    "Residential Colony",
-    "City Center"
-]
+location = st.selectbox("Select Location", df["Location"].unique())
+day = st.number_input("Enter Day", 1, 31, 1)
+selected_time = st.time_input("Select Time", datetime.now().time())
+weather = st.selectbox("Select Weather", ["Clear", "Rainy", "Foggy"])
 
-location = st.selectbox("Select Location", locations)
+# ================= ANALYZE =================
+if st.button("🚀 Analyze Traffic"):
 
-day = st.number_input(
-    "Enter Day (Date number)",
-    min_value=1,
-    max_value=31,
-    step=1
-)
-
-selected_time = st.time_input("Select Time")
-
-weather = st.selectbox(
-    "Select Weather",
-    ["Clear", "Rainy", "Foggy", "Stormy"]
-)
-
-# ================= ANALYZE BUTTON =================
-if st.button("🔍 Analyze Traffic"):
+    # Animated Loading
+    with st.spinner("🔄 Analyzing traffic data..."):
+        time.sleep(2)
 
     filtered = df[
-        (df["Date"] == day) &
+        (df["Location"] == location) &
+        (df["Date"].dt.day == day) &
         (df["Time"] == selected_time)
     ]
 
     if filtered.empty:
-        st.warning("No data available for selected inputs")
+        st.warning("No data available.")
     else:
-        vehicles = int(filtered["CarCount"].values[0])
-        day_name = filtered.iloc[0]["Day of the week"]
+        vehicles = int(filtered.iloc[0]["CarCount"])
+        day_name = filtered.iloc[0]["Day of the Week"]
+        lat = filtered.iloc[0]["Latitude"]
+        lon = filtered.iloc[0]["Longitude"]
         hour = selected_time.hour
 
-        # ================= WEATHER EFFECT =================
-        if weather == "Rainy":
-            vehicles += 10
-        elif weather == "Foggy":
-            vehicles += 5
-        elif weather == "Stormy":
-            vehicles += 15
-
-        # ================= OUTPUT =================
-        st.markdown("### 📊 Traffic Analysis")
-
-        st.info(f"📍 Location: {location}")
-        st.info(f"📅 Day: {day_name}")
-        st.info(f"⏰ Time: {selected_time}")
-        st.info(f"🚗 Vehicle Count (Adjusted): {vehicles}")
-        st.info(f"🌦️ Weather: {weather}")
-
-        # ================= TRAFFIC LOGIC =================
-        if 8 <= hour <= 10 or 17 <= hour <= 20:
+        if (8 <= hour <= 10) or (17 <= hour <= 20) or weather in ["Rainy", "Foggy"]:
             traffic = "High Traffic 🔴"
-            reasons = [
-                "Office peak hours",
-                "High vehicle movement"
-            ]
         elif vehicles < 20:
             traffic = "Low Traffic 🟢"
-            reasons = [
-                "Less vehicles",
-                "Non-peak hours"
-            ]
         else:
             traffic = "Moderate Traffic 🟡"
-            reasons = [
-                "Normal traffic flow"
-            ]
 
-        st.markdown("### 🚦 Traffic Level")
-        st.success(traffic)
+        # ================= RESULT =================
+        st.success(f"""
+📍 Location: {location}  
+📅 Day: {day_name}  
+⏰ Time: {selected_time}  
+🌦️ Weather: {weather}  
+🚗 Vehicles: {vehicles}  
+🚦 Traffic: {traffic}
+""")
 
-        st.markdown("**Reason:**")
-        for r in reasons:
-            st.write(f"• {r}")
+        # ================= GOOGLE MAP VIEW =================
+        st.markdown("## 🗺 Live Location Map")
+        map_df = pd.DataFrame({
+            "lat": [lat],
+            "lon": [lon]
+        })
+        st.map(map_df)
 
-        # ================= PEAK HOUR =================
-        st.markdown("### ⏰ Peak Hour Indicator")
-        if 8 <= hour <= 10 or 17 <= hour <= 20:
-            st.error("Peak Hour: YES ⏰")
-        else:
-            st.success("Peak Hour: NO ✅")
+        # ================= AUTO VOICE ENGLISH + HINDI =================
+        english_voice = (
+            f"Traffic analysis result. "
+            f"Location is {location}. "
+            f"Day is {day_name}. "
+            f"Time is {selected_time}. "
+            f"Weather is {weather}. "
+            f"Traffic level is {traffic}."
+        )
 
-        # ================= SMART RECOMMENDATION =================
-        st.markdown("### 🧠 Smart Recommendation")
-        if traffic.startswith("High"):
-            st.warning("Avoid travel now. Try after peak hours.")
-        elif traffic.startswith("Moderate"):
-            st.info("Traffic is manageable. Drive carefully.")
-        else:
-            st.success("Best time to travel. Smooth route.")
+        hindi_voice = (
+            f"ट्रैफिक विश्लेषण परिणाम। "
+            f"स्थान है {location}. "
+            f"दिन है {day_name}. "
+            f"समय है {selected_time}. "
+            f"मौसम है {weather}. "
+            f"ट्रैफिक स्तर है {traffic}."
+        )
 
-        # ================= GRAPH =================
-        st.markdown("### 📈 Traffic Trend (Same Day)")
-        day_data = df[df["Date"] == day].sort_values("Time")
-        st.line_chart(day_data.set_index("Time")["CarCount"])
+        components.html(
+            f"""
+            <script>
+                function speakText(text, lang) {{
+                    var msg = new SpeechSynthesisUtterance(text);
+                    msg.lang = lang;
+                    msg.rate = 0.9;
+                    msg.pitch = 1.1;
+                    window.speechSynthesis.speak(msg);
+                }}
+
+                window.speechSynthesis.cancel();
+
+                speakText("{english_voice}", "en-IN");
+
+                setTimeout(function() {{
+                    speakText("{hindi_voice}", "hi-IN");
+                }}, 5000);
+            </script>
+            """,
+            height=0
+        )
+
+st.markdown("---")
+st.caption("🚦 AI Traffic Density Analyzer | Smart City Project")
         st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
