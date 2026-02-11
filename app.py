@@ -9,7 +9,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# ================= DARK STYLISH UI =================
+# ================= STYLISH DARK UI =================
 st.markdown("""
 <style>
 .stApp {
@@ -22,7 +22,10 @@ h1, h2, h3 {
 .stButton>button {
     background-color: #ff4b4b;
     color: white;
-    border-radius: 10px;
+    border-radius: 12px;
+    height: 3em;
+    width: 100%;
+    font-size:18px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -32,18 +35,28 @@ st.markdown("# 🚦 AI Traffic Density Analyzer")
 
 # ================= LOAD DATA =================
 df = pd.read_csv("TrafficTwoMonth.csv")
-
 df["Time"] = pd.to_datetime(df["Time"]).dt.time
 
-# ================= INPUT =================
-st.markdown("### ⏰ Select Time")
+# ================= INPUT SECTION =================
+st.markdown("## 📍 Location Details")
+
+# Manual Locations (since CSV doesn't have it)
+location = st.selectbox(
+    "Select Location",
+    ["Main Road", "City Center", "Highway", "Market Area"]
+)
+
+weather = st.selectbox(
+    "Select Weather",
+    ["Clear ☀️", "Rainy 🌧️", "Foggy 🌫️"]
+)
 
 selected_time = st.time_input(
-    "Choose Time",
+    "Select Time",
     datetime.now().time()
 )
 
-# ================= BUTTON =================
+# ================= ANALYZE BUTTON =================
 if st.button("🔍 Analyze Traffic"):
 
     filtered = df[df["Time"] == selected_time]
@@ -57,27 +70,33 @@ if st.button("🔍 Analyze Traffic"):
         traffic_status = row["Traffic Situation"]
         day_name = row["Day of the week"]
 
+        # Extra logic for weather
+        if "Rainy" in weather or "Foggy" in weather:
+            traffic_status = "Heavy"
+
         # ================= OUTPUT =================
-        st.markdown("### 📊 Traffic Analysis")
+        st.markdown("## 📊 Traffic Analysis Result")
 
+        st.info(f"📍 Location: {location}")
         st.info(f"📅 Day: {day_name}")
+        st.info(f"⏰ Time: {selected_time}")
+        st.info(f"🌦️ Weather: {weather}")
         st.info(f"🚗 Total Vehicles: {total}")
-        st.success(f"🚦 Traffic Condition: {traffic_status.upper()}")
 
-        # ================= SMART MESSAGE =================
         if traffic_status.lower() == "heavy":
+            st.error("🚦 Traffic: HEAVY 🔴")
             message_en = "Traffic is heavy. Please avoid travelling now."
-            message_hi = "ट्रैफिक बहुत ज्यादा है। अभी यात्रा करने से बचें।"
+            message_hi = "ट्रैफिक बहुत ज्यादा है। कृपया अभी यात्रा करने से बचें।"
+
         elif traffic_status.lower() == "normal":
-            message_en = "Traffic is normal. You can travel safely."
-            message_hi = "ट्रैफिक सामान्य है। आप सुरक्षित यात्रा कर सकते हैं।"
+            st.warning("🚦 Traffic: NORMAL 🟡")
+            message_en = "Traffic is normal. Drive carefully."
+            message_hi = "ट्रैफिक सामान्य है। सावधानी से वाहन चलाएं।"
+
         else:
+            st.success("🚦 Traffic: LOW 🟢")
             message_en = "Traffic is low. Best time to travel."
             message_hi = "ट्रैफिक कम है। यात्रा के लिए सबसे अच्छा समय।"
-
-        st.markdown("### 🧠 Smart Recommendation")
-        st.write(message_en)
-        st.write(message_hi)
 
         # ================= AUTO FEMALE VOICE =================
         components.html(f"""
@@ -86,10 +105,11 @@ if st.button("🔍 Analyze Traffic"):
             var msg = new SpeechSynthesisUtterance(text);
             msg.lang = lang;
             msg.rate = 0.9;
+            msg.pitch = 1.2;
 
             var voices = speechSynthesis.getVoices();
             for (var i = 0; i < voices.length; i++) {{
-                if (voices[i].lang.includes(lang) && voices[i].name.toLowerCase().includes("female")) {{
+                if (voices[i].lang.includes(lang)) {{
                     msg.voice = voices[i];
                     break;
                 }}
@@ -107,5 +127,6 @@ if st.button("🔍 Analyze Traffic"):
         </script>
         """, height=0)
 
+# ================= FOOTER =================
 st.markdown("---")
 st.caption("🚦 AI Traffic Density Analyzer | Smart City Mini Project | By Mohit Kumar Singh")
