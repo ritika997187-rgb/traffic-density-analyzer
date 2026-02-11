@@ -139,5 +139,5 @@ if st.button("🚀 Analyze Traffic"):
         )
 
 st.markdown("---")
-st.caption("🚦 AI Traffic Density Analyzer | Smart City Project")
-        st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
+st.caption("🚦 AI Traffic Density Analyzer | Smart City Project" |
+st.caption("🚦 Traffic Density Analyzer | Mini Project | By Mohit kumar Singh")
